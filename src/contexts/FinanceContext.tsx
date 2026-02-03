@@ -1,5 +1,36 @@
-import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
-import { BankAccount, Transaction, AccountType, TransactionType } from '@/types/finance';
+import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react';
+import { BankAccount, Transaction, AccountType } from '@/types/finance';
+
+const STORAGE_KEYS = {
+  accounts: 'fincontrol_accounts',
+  transactions: 'fincontrol_transactions',
+};
+
+function loadFromStorage<T>(key: string, fallback: T): T {
+  try {
+    const stored = localStorage.getItem(key);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      // Reconverte strings de data para objetos Date
+      return parsed.map((item: any) => ({
+        ...item,
+        createdAt: new Date(item.createdAt),
+        date: item.date ? new Date(item.date) : undefined,
+      }));
+    }
+  } catch (e) {
+    console.error(`Erro ao carregar ${key}:`, e);
+  }
+  return fallback;
+}
+
+function saveToStorage<T>(key: string, data: T): void {
+  try {
+    localStorage.setItem(key, JSON.stringify(data));
+  } catch (e) {
+    console.error(`Erro ao salvar ${key}:`, e);
+  }
+}
 
 interface FinanceContextType {
   accounts: BankAccount[];
@@ -15,8 +46,21 @@ interface FinanceContextType {
 const FinanceContext = createContext<FinanceContextType | undefined>(undefined);
 
 export function FinanceProvider({ children }: { children: React.ReactNode }) {
-  const [accounts, setAccounts] = useState<BankAccount[]>([]);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [accounts, setAccounts] = useState<BankAccount[]>(() => 
+    loadFromStorage(STORAGE_KEYS.accounts, [])
+  );
+  const [transactions, setTransactions] = useState<Transaction[]>(() => 
+    loadFromStorage(STORAGE_KEYS.transactions, [])
+  );
+
+  // Salva automaticamente quando os dados mudam
+  useEffect(() => {
+    saveToStorage(STORAGE_KEYS.accounts, accounts);
+  }, [accounts]);
+
+  useEffect(() => {
+    saveToStorage(STORAGE_KEYS.transactions, transactions);
+  }, [transactions]);
 
   const addAccount = useCallback((account: Omit<BankAccount, 'id' | 'createdAt'>) => {
     const newAccount: BankAccount = {
