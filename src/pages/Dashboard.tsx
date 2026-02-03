@@ -5,6 +5,7 @@ import { AccountCard } from '@/components/finance/AccountCard';
 import { TransactionCard } from '@/components/finance/TransactionCard';
 import { AddTransactionDialog } from '@/components/finance/AddTransactionDialog';
 import { AddAccountDialog } from '@/components/finance/AddAccountDialog';
+import { ExportDataButton } from '@/components/finance/ExportDataButton';
 import { Wallet } from 'lucide-react';
 
 export default function Dashboard() {
@@ -31,7 +32,8 @@ export default function Dashboard() {
               Visão geral das suas finanças
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            <ExportDataButton />
             <AddTransactionDialog defaultType="income" />
             <AddTransactionDialog defaultType="expense" />
           </div>
